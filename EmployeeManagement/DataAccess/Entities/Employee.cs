@@ -3,9 +3,6 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace EmployeeManagement.DataAccess.Entities
 {
-    /// <summary>
-    /// Base class for all employees
-    /// </summary>
     public abstract class Employee
     {
         [Key]

@@ -13,7 +13,6 @@
         {
             IHeaderDictionary headers = context.Response.Headers;
              
-            // Add CSP + X-Content-Type
             headers["Content-Security-Policy"] = "default-src 'self';frame-ancestors 'none';"; 
             headers["X-Content-Type-Options"] = "nosniff"; 
 

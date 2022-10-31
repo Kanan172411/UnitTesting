@@ -18,11 +18,6 @@ namespace EmployeeManagement.Business
             _employeeManagementRepository = employeeManagementRepository;
         }
 
-        /// <summary>
-        /// Promote an internal employee if eligible for promotion
-        /// </summary>
-        /// <param name="employee"></param>
-        /// <returns></returns>
         public async Task<bool> PromoteInternalEmployeeAsync(InternalEmployee employee)
         {
             if (await CheckIfInternalEmployeeIsEligibleForPromotion(employee.Id))
@@ -34,15 +29,9 @@ namespace EmployeeManagement.Business
             return false;
         }
 
-        /// <summary>
-        /// Calls into external API (containing a data source only
-        /// the top level managers can manage) to check whether
-        /// an internal employee is eligible for promotion
-        /// </summary> 
         private async Task<bool> CheckIfInternalEmployeeIsEligibleForPromotion(
             Guid employeeId)
         {
-            // call into API
             var apiRoot = "http://localhost:5057";
 
             var request = new HttpRequestMessage(HttpMethod.Get,
@@ -53,7 +42,6 @@ namespace EmployeeManagement.Business
             var response = await _httpClient.SendAsync(request);
             response.EnsureSuccessStatusCode();
 
-            // deserialize content
             var content = await response.Content.ReadAsStringAsync();
             var promotionEligibility = JsonSerializer.Deserialize<PromotionEligibility>(content,
                 new JsonSerializerOptions
@@ -61,7 +49,6 @@ namespace EmployeeManagement.Business
                     PropertyNamingPolicy = JsonNamingPolicy.CamelCase
                 });
 
-            // return value
             return promotionEligibility == null ?
                 false : promotionEligibility.EligibleForPromotion;
         }

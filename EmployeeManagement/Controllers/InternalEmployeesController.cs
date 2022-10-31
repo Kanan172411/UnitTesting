@@ -25,7 +25,6 @@ namespace EmployeeManagement.Controllers
         {
             var internalEmployees = await _employeeService.FetchInternalEmployeesAsync();
 
-            // with manual mapping
             var internalEmployeeDtos =
                 internalEmployees.Select(e => new InternalEmployeeDto()
                 {
@@ -36,10 +35,6 @@ namespace EmployeeManagement.Controllers
                     SuggestedBonus = e.SuggestedBonus,
                     YearsInService = e.YearsInService
                 });
-
-            // with AutoMapper
-            //var internalEmployeeDtos =
-            //    _mapper.Map<IEnumerable<InternalEmployeeDto>>(internalEmployees);
 
             return Ok(internalEmployeeDtos);
         }
@@ -67,16 +62,12 @@ namespace EmployeeManagement.Controllers
         public async Task<ActionResult<InternalEmployeeDto>> CreateInternalEmployee(
             InternalEmployeeForCreationDto internalEmployeeForCreation)
         { 
-            // create an internal employee entity with default values filled out
-            // and the values inputted via the POST request
             var internalEmployee =
                     await _employeeService.CreateInternalEmployeeAsync(
                         internalEmployeeForCreation.FirstName, internalEmployeeForCreation.LastName);
 
-            // persist it
             await _employeeService.AddInternalEmployeeAsync(internalEmployee);
  
-            // return created employee after mapping to a DTO
             return CreatedAtAction("GetInternalEmployee",
                 _mapper.Map<InternalEmployeeDto>(internalEmployee),
                 new { employeeId = internalEmployee.Id } );

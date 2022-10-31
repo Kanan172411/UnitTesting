@@ -19,11 +19,9 @@ namespace EmployeeManagement
         public static IServiceCollection RegisterDataServices(
             this IServiceCollection services, IConfiguration configuration)
         {
-            // add the DbContext
             services.AddDbContext<EmployeeDbContext>(options =>
                 options.UseSqlite(configuration.GetConnectionString("EmployeeManagementDB")));
 
-            // register the repository
             services.AddScoped<IEmployeeManagementRepository, EmployeeManagementRepository>();
             return services;
         }
