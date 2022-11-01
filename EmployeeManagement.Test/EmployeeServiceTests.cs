@@ -1,4 +1,7 @@
 ﻿using EmployeeManagement.Business;
+using EmployeeManagement.Business.EventArguments;
+using EmployeeManagement.Business.Exceptions;
+using EmployeeManagement.DataAccess.Entities;
 using EmployeeManagement.Services.Test;
 using System;
 using System.Collections.Generic;
@@ -47,7 +50,7 @@ namespace EmployeeManagement.Test
         }
 
         [Fact]
-        public void CreateInternalEmployee_InternalEmployeeCreated_AttendedCoursesMustMatchObligatoryCourse_()
+        public void CreateInternalEmployee_InternalEmployeeCreated_AttendedCoursesMustMatchObligatoryCourse()
         {
             var employeeManagementTestDataRepository = new EmployeeManagementTestDataRepository();
             var employeeService = new EmployeeService(employeeManagementTestDataRepository, new EmployeeFactory());
@@ -69,6 +72,54 @@ namespace EmployeeManagement.Test
             var internalEmployee = employeeService.CreateInternalEmployee("Kanan", "Garazada");
 
             Assert.All(internalEmployee.AttendedCourses, course => Assert.False(course.IsNew));
+        }
+
+        [Fact]
+        public async Task CreateInternalEmployee_InternalEmployeeCreated_AttendedCoursesMustMatchObligatoryCourse_Async()
+        {
+            var employeeManagementTestDataRepository = new EmployeeManagementTestDataRepository();
+            var employeeService = new EmployeeService(employeeManagementTestDataRepository, new EmployeeFactory());
+            var obligatoryCourses = await employeeManagementTestDataRepository.GetCoursesAsync(
+                Guid.Parse("37e03ca7-c730-4351-834c-b66f280cdb01"),
+                Guid.Parse("1fd115cf-f44c-4982-86bc-a8fe2e4ff83e"));
+
+            var internalEmployee = await employeeService.CreateInternalEmployeeAsync("Kanan", "Garazada");
+
+            Assert.Equal(obligatoryCourses, internalEmployee.AttendedCourses);
+        }
+
+        [Fact]
+        public async Task GiveRaise_RaiseBelowMinimumGiven_EmployeeInvalidRaiseExceptionMustBeThrown()
+        {
+            var employeeService = new EmployeeService(new EmployeeManagementTestDataRepository(), new EmployeeFactory());
+            var internalEmployee = new InternalEmployee("Kanan", "Garazada", 3, 3000, false, 1);
+
+            await Assert.ThrowsAsync<EmployeeInvalidRaiseException>(
+                async () => 
+                    await employeeService.GiveRaiseAsync(internalEmployee, 50)
+            );
+        }
+
+        [Fact]
+        public void NotifyOfAbsence_EmployeeIsAbsent_OnEmployeeIsAbsentMustBeTriggered()
+        {
+            var employeeService = new EmployeeService(new EmployeeManagementTestDataRepository(), new EmployeeFactory());
+            var internalEmployee = new InternalEmployee("Kanan", "Garazada", 3, 3000, false, 1);
+
+            Assert.Raises<EmployeeIsAbsentEventArgs>(
+                handler => employeeService.EmployeeIsAbsent += handler,
+                handler => employeeService.EmployeeIsAbsent += handler,
+                () => employeeService.NotifyOfAbsence(internalEmployee));
+        }
+
+        [Fact]
+        public void CreateEmployee_IsExternalTrue_ReturnTypeMustBeExternalEmployee()
+        {
+            var factory = new EmployeeFactory();
+
+            var employee = factory.CreateEmployee("Kanan", "Garazada", "Microsoft", true);
+
+            Assert.IsType<ExternalEmployee>(employee);
         }
     }
 }
